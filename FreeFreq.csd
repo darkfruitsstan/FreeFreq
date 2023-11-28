@@ -1,5 +1,5 @@
 <Cabbage>
-form caption("Untitled") size(1280, 500), guiMode("queue"), pluginId("def1")
+form caption("FreeFreq") size(1280, 500), guiMode("queue"), pluginId("def1")
 
 button bounds(160, 410, 80, 40) channel("HpBtn") text("Inactive", "Active", "") colour:0(255, 0, 0, 255) colour:1(0, 255, 0, 255)
 button bounds(384, 410, 80, 40) channel("b1Btn") text("Inactive", "Active") colour:0(255, 0, 0, 255) colour:1(0, 255, 0, 255)
@@ -27,21 +27,62 @@ rslider bounds(854, 290, 60, 60) channel("B3A") range(0, 1, 0, 1, 0.001) text("A
 rslider bounds(1074, 136, 60, 60) channel("LPQ") range(0, 1, 0, 1, 0.001) text("Q")
 rslider bounds(1074, 266, 60, 60) channel("LPF") range(17000, 20000, 0, 1, 1) text("Freq")popupText("0")
 </Cabbage>
-<CsoundSynthesizer>
+<<CsoundSynthesizer>
 <CsOptions>
 -n -d -+rtmidi=NULL -M0 -m0d --midi-key-cps=4 --midi-velocity-amp=5
 </CsOptions>
 <CsInstruments>
-; Initialize the global variables. 
-ksmps = 32
-nchnls = 2
-0dbfs = 1
+  ; Initialize the global variables. 
+  ksmps = 32
+  nchnls = 2
+  0dbfs = 1
 
+  instr 1
+    ; High Pass Filter
+    kHPFreq   chnget "hpfreq"
+    kHPQ      chnget "hpq"
+    kHpBtn    chnget "HpBtn"
+    aHighPass butterhp 0.5, kHPFreq, kHPQ
+    aHighPass = aHighPass * kHpBtn
+    outs aHighPass, aHighPass
 
+    ; Band 1
+    kB1Freq   chnget "B1F"
+    kB1Q      chnget "B1Q"
+    kB1A      chnget "B1A"
+    kB1Btn    chnget "b1Btn"
+    aBand1    butterbp 0.5, kB1Freq, kB1Q
+    aBand1    = aBand1 * dB2amp * (kB1A * kB1Btn)
 
+    ; Band 2
+    kB2Freq   chnget "B2F"
+    kB2Q      chnget "B2Q"
+    kB2A      chnget "B2A"
+    kB2Btn    chnget "b2Btn"
+    aBand2    butterbp 0.5, kB2Freq, kB2Q
+    aBand2    = aBand2 * dB2amp * (kB2A * kB2Btn)
+
+    ; Band 3
+    kB3Freq   chnget "B3F"
+    kB3Q      chnget "B3Q"
+    kB3A      chnget "B3A"
+    kB3Btn    chnget "b3Btn"
+    aBand3    butterbp 0.5, kB3Freq, kB3Q
+    aBand3    = aBand3 * dB2amp * (kB3A * kB3Btn)
+
+    ; Low Pass Filter
+    kLPFreq   chnget "LPF"
+    kLPQ      chnget "LPQ"
+    kLpBtn    chnget "LpBtn"
+    aLowPass  butterlp 0.5, kLPFreq, kLPQ
+    aLowPass = aLowPass * kLpBtn
+    outs aLowPass, aLowPass
+  endin
 </CsInstruments>
+
 <CsScore>
-;causes Csound to run for about 7000 years...
-f0 z
+  ; Play the EQ instrument
+  f 0 z
 </CsScore>
+
 </CsoundSynthesizer>
