@@ -1,0 +1,123 @@
+<Cabbage>
+form caption("FreeFreq") size(1280, 500), guiMode("queue"), pluginId("def1")
+label bounds(520, 30, 237, 44) channel("label10010") text("FreeFreq") fontColour(0, 0, 0, 255) colour(255, 0, 0, 0)
+
+//input buttons
+button bounds(160, 410, 80, 40) channel("HpBtn") text("Inactive", "Active") colour:0(255, 0, 0, 255) colour:1(0, 255, 0, 255)
+button bounds(384, 410, 80, 40) channel("b1Btn") text("Inactive", "Active") colour:0(255, 0, 0, 255) colour:1(0, 255, 0, 255)
+button bounds(604, 410, 80, 40) channel("b2Btn") text("Inactive", "Active") colour:0(255, 0, 0, 255) colour:1(0, 255, 0, 255)
+button bounds(840, 406, 80, 40) channel("b3Btn") text("Inactive", "Active") colour:0(255, 0, 0, 255) colour:1(0, 255, 0, 255)
+button bounds(1064, 410, 80, 40) channel("LpBtn") text("Inactive", "Active") colour:0(255, 0, 0, 255) colour:1(0, 255, 0, 255)
+
+groupbox bounds(148, 100, 100, 275) channel("groupbox10004") text("High Pass")
+groupbox bounds(370, 100, 100, 275) channel("groupbox10005") text("Band 1")
+groupbox bounds(594, 98, 100, 275) channel("groupbox10006") text("Band 2")
+groupbox bounds(832, 100, 99, 275) channel("groupbox10007") text("Band 3") 
+groupbox bounds(1054, 100, 100, 275) channel("groupbox10008") text("Low Pass")
+
+rslider bounds(168, 148, 60, 60) channel("hpq") range(0, 1000, 0, 1, 1) text("Q")popupText("0")
+rslider bounds(168, 282, 60, 60) channel("hpfreq") range(0, 1000, 0, 1, 1) text("Freq")popupText("0")
+
+rslider bounds(390, 128, 60, 60) channel("B1Q") range(0, 1, 0, 1, 0.001) text("Q")popupText("0")
+rslider bounds(386, 204, 56, 59) channel("B1F") range(1000, 5000, 0, 1, 0.001) text("Freq")popupText("0")
+rslider bounds(392, 288, 60, 60) channel("B1A") range(-2, 2, 0, 1, 0.001) text("Ampitude")popupText("0")
+
+rslider bounds(616, 130, 60, 60) channel("B2Q") range(0, 1, 0, 1, 0.001) text("Q")popupText("0")
+rslider bounds(614, 206, 60, 60) channel("B2F") range(5000, 10000, 0, 1, 0.001) text("Freq")popupText("0")
+rslider bounds(612, 286, 60, 60) channel("B2A") range(-2, 2, 0, 1, 0.001) text("Amplitude")popupText("0")
+
+rslider bounds(850, 126, 60, 60) channel("B3Q") range(0, 1, 0, 1, 0.001) text("Q")popupText("0")
+rslider bounds(852, 202, 60, 60) channel("B3F") range(10000, 16000, 0, 1, 0.001) text("Freq")popupText("0")
+rslider bounds(854, 290, 60, 60) channel("B3A") range(-2, 2, 0, 1, 0.001) text("Amplitude")popupText("0")
+
+rslider bounds(1074, 136, 60, 60) channel("LPQ") range(0, 1, 0, 1, 0.001) text("Q")popupText("0")
+rslider bounds(1074, 266, 60, 60) channel("LPF") range(17000, 20000, 0, 1, 1) text("Freq")popupText("0")
+
+button bounds(30, 24, 80, 40) channel("Bypass") text("Off", "On") colour:0(250, 0, 0, 255) colour:1(37, 229, 8, 255)
+
+
+</Cabbage>
+<<CsoundSynthesizer>
+<CsOptions>
+-n -d -+rtmidi=NULL -M0 -m0d --midi-key-cps=4 --midi-velocity-amp=5
+</CsOptions>
+<CsInstruments>
+  ; Initialize the global variables. 
+  ksmps = 32
+  nchnls = 2
+  0dbfs = 1
+
+  instr 1
+   aLeft, aRight ins
+   
+   kBypass chnget "Bypass"
+    ; High Pass Filter
+    kHPFreq   chnget "hpfreq"
+    kHPQ      chnget "hpq"
+    kHpBtn    chnget "HpBtn"
+    aHPFL rezzy aLeft, kHPFreq, kHPQ, 1
+    aHPFR rezzy aRight, kHPFreq, kHPQ, 1
+
+    ; Band 1
+    kB1Freq   chnget "B1F"
+    kB1Q      chnget "B1Q"
+    kB1A      chnget "B1A"
+    kB1Btn    chnget "b1Btn"
+    
+    aB1Lt rbjeq aLeft, kB1Freq, kB1Q, kB1A
+    aB1Rt rbjeq aRight, kB1Freq, kB1Q, kB1A
+
+
+    ; Band 2
+    kB2Freq   chnget "B2F"
+    kB2Q      chnget "B2Q"
+    kB2A      chnget "B2A"
+    kB2Btn    chnget "b2Btn"
+    
+    aB2Lt rbjeq aLeft, kB2Freq, kB2Q, kB2A
+    aB2Rt rbjeq aRight, kB2Freq, kB2Q, kB2A
+  
+
+    ; Band 3
+    kB3Freq   chnget "B3F"
+    kB3Q      chnget "B3Q"
+    kB3A      chnget "B3A"
+    kB3Btn    chnget "b3Btn"
+    
+    aB3Lt rbjeq aLeft, kB3Freq, kB3Q, kB3A
+    aB3Rt rbjeq aRight, kB3Freq, kB3Q, kB3A
+ 
+
+    ; Low Pass Filter
+    kLPFreq   chnget "LPF"
+    kLPQ      chnget "LPQ"
+    kLpBtn    chnget "LpBtn"
+    
+    aLPFL rezzy aLeft, kLPFreq, kLPQ
+    aLPFR rezzy aRight, kLPFreq, kLPQ
+
+    ; EQ CODE
+    
+    aFiltSigL sum aHPFL, aB1Lt, aB2Lt, aB3Lt, aLPFL
+    aFiltSigR sum aHPFR, aB1Rt, aB2Rt, aB3Rt, aLPFR 
+ 
+     if ( kBypass == 1 ) then
+    
+    outs aFiltSigL, aFiltSigR
+    
+    else 
+    outs aLeft, aRight
+    endif
+    
+endin
+
+
+</CsInstruments>
+
+<CsScore>
+  i 1 0 [3600*24*7]
+  f 0 z
+
+</CsScore>
+
+</CsoundSynthesizer>
